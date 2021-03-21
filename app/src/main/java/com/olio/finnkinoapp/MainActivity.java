@@ -2,6 +2,7 @@ package com.olio.finnkinoapp;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.view.View;
@@ -18,12 +19,14 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
     TheatreCollection tc;
     Spinner theatreSpinner;
     Theatre theatreSelected;
-    TextView text;
+    EditText datePicker;
+    DatePickerDialog datePickerDialog;
     ListView listView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         theatreSpinner = (Spinner) findViewById(R.id.theatreSelector);
         listView = (ListView) findViewById(R.id.listView);
         String [] theatreNameList = new String[tc.theatreList.size()];
-        //Create array of strings to put into spinner
+        //Create array of strings to put into spinner TODO move this to TheatreCollection
         for (int i = 0;i<tc.theatreList.size();i++){
             theatreNameList[i] = tc.theatreList.get(i).getLocation();
         }
@@ -47,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 theatreSelected = tc.theatreList.get(position);
                 System.out.println(theatreSelected.getId());
-                try {
+                try { //TODO move this to TheatreCollection
                     System.out.println(tc.scheduleURLBuilder(theatreSelected.getId(), null).toString());
                     ArrayList<Movie> moviesList = tc.parseScheduleXML(tc.readXML(tc.scheduleURLBuilder(theatreSelected.getId(), null)));
                     String [] movieArray = new String[moviesList.size()];
@@ -66,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
                 } catch (IOException e){
 
                 }
+
             }
 
             @Override
@@ -73,7 +77,25 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
-
+        //Initialize datePickerDialog when clicking on editText
+        datePicker = (EditText) findViewById(R.id.datePicker);
+        datePicker.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final Calendar c = Calendar.getInstance();
+                int mYear = c.get(Calendar.YEAR);
+                int mMonth = c.get(Calendar.MONTH);
+                int mDay = c.get(Calendar.DAY_OF_MONTH);
+                datePickerDialog = new DatePickerDialog(MainActivity.this, new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                        datePicker.setText(dayOfMonth + "." + (month + 1) + "." + year);
+                        //TODO updateList function here
+                    }
+                },mYear, mMonth, mDay);
+                datePickerDialog.show();
+            }
+        });
     }
 
 }
