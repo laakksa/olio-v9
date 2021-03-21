@@ -1,6 +1,7 @@
 package com.olio.finnkinoapp;
 
 import android.util.Log;
+import android.widget.ArrayAdapter;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -37,10 +38,6 @@ public class TheatreCollection {
             tc_instance = new TheatreCollection();
         }
         return tc_instance;
-    }
-
-    public ArrayList<Theatre> getTheatreList() {
-        return theatreList;
     }
 
     public void addTheatre(String location, int id) {
@@ -122,7 +119,7 @@ public class TheatreCollection {
     }
     public URL scheduleURLBuilder(int id, String d) throws MalformedURLException{
         String date = "";
-        if (d == null){
+        if (d.isEmpty()){
             date = new SimpleDateFormat("dd.MM.yyyy").format(new Date());
         } else {
             date = d;
@@ -130,5 +127,35 @@ public class TheatreCollection {
         String urlString = "https://www.finnkino.fi/xml/Schedule/?area=" + id + "&dt=" + date;
         URL url = new URL(urlString);
         return url;
+    }
+    //Create String array from theatre names
+    public String[] getTheatreList(){
+        String [] theatreNameList = new String[theatreList.size()];
+        for (int i = 0;i < theatreList.size(); i++){
+            theatreNameList[i] = theatreList.get(i).getLocation();
+        }
+        return theatreNameList;
+    }
+
+    public String[] updateMovies(Theatre theatreSelected, String date) {
+        try {
+            //TODO remove sout
+            System.out.println(scheduleURLBuilder(theatreSelected.getId(), date).toString());
+            ArrayList<Movie> moviesList = parseScheduleXML(readXML(scheduleURLBuilder(theatreSelected.getId(), date)));
+            String [] movieArray = new String[moviesList.size()];
+            for (int i = 0; i < moviesList.size(); i++) {
+                StringBuilder sb = new StringBuilder();
+                sb.append(moviesList.get(i).getTitle());
+                sb.append("\t\t");
+                sb.append(String.format("%s-%s", moviesList.get(i).getStartTime(), moviesList.get(i).getEndTime()));
+                movieArray[i] = sb.toString();
+            }
+            return movieArray;
+        } catch (XmlPullParserException e) {
+            Log.e("XmlPullParserException", "Faulty XmlPullParser");
+        } catch (IOException e) {
+            Log.e("IOException", "Faulty input");
+        }
+        return null;
     }
 }
