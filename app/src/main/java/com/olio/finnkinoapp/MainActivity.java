@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     String[] theatreNameList, movieArray;
     DatePickerDialog datePickerDialog;
     ListView listView;
+    ArrayAdapter<String> movieArrayAdapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,10 +49,7 @@ public class MainActivity extends AppCompatActivity {
                 theatreSelected = tc.theatreList.get(position);
                 System.out.println(theatreSelected.getId());
                 System.out.println("Date selected: " + datePicker.getText().toString());
-                movieArray = tc.updateMovies(theatreSelected, datePicker.getText().toString());
-                ArrayAdapter<String> movieArrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, movieArray);
-                movieArrayAdapter.notifyDataSetChanged();
-                listView.setAdapter(movieArrayAdapter);
+                updateMovieList(theatreSelected, datePicker.getText().toString());
 
             }
 
@@ -73,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                         datePicker.setText(String.format("%02d.%02d.%04d", dayOfMonth, (month + 1), year));
+                        updateMovieList(theatreSelected, datePicker.getText().toString());
                         //TODO updateList function here
                     }
                 },mYear, mMonth, mDay);
@@ -80,5 +79,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-
+    public void updateMovieList(Theatre theatreSelected, String date){
+        movieArray = tc.updateMovies(theatreSelected, date);
+        movieArrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, movieArray);
+        movieArrayAdapter.notifyDataSetChanged();
+        listView.setAdapter(movieArrayAdapter);
+    }
 }
