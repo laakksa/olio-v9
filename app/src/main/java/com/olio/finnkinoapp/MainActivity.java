@@ -8,28 +8,28 @@ import android.os.StrictMode;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.TextView;
-
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
+
+
     TheatreCollection tc;
     Spinner theatreSpinner;
     Theatre theatreSelected;
-    EditText datePicker;
-    String[] theatreNameList, movieArray;
+    EditText datePicker, searchStartTime, searchEndTime;
+    String[] theatreNameList;
     DatePickerDialog datePickerDialog;
     ListView listView;
     ArrayAdapter<String> movieArrayAdapter;
+    Button searchButton;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,6 +39,10 @@ public class MainActivity extends AppCompatActivity {
         tc = TheatreCollection.getInstance();
         theatreSpinner = (Spinner) findViewById(R.id.theatreSelector);
         listView = (ListView) findViewById(R.id.listView);
+        searchStartTime = (EditText) findViewById(R.id.searchStartTime);
+        searchEndTime = (EditText) findViewById(R.id.searchEndTime);
+
+        //Initialize spinner for theatres
         theatreNameList = tc.getTheatreList();
         ArrayAdapter<String> theatreArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, theatreNameList);
         theatreArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -47,17 +51,18 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 theatreSelected = tc.theatreList.get(position);
-                System.out.println(theatreSelected.getId());
-                System.out.println("Date selected: " + datePicker.getText().toString());
                 updateMovieList(theatreSelected, datePicker.getText().toString());
 
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-
+                theatreSelected = tc.theatreList.get(0);
+                updateMovieList(theatreSelected, "");
             }
         });
+
+
         //Initialize datePickerDialog when clicking on editText
         datePicker = (EditText) findViewById(R.id.datePicker);
         datePicker.setOnClickListener(new View.OnClickListener() {
@@ -72,15 +77,26 @@ public class MainActivity extends AppCompatActivity {
                     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                         datePicker.setText(String.format("%02d.%02d.%04d", dayOfMonth, (month + 1), year));
                         updateMovieList(theatreSelected, datePicker.getText().toString());
-                        //TODO updateList function here
                     }
                 },mYear, mMonth, mDay);
                 datePickerDialog.show();
             }
         });
+        searchButton = (Button) findViewById(R.id.searchButton);
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateMovieList(theatreSelected, datePicker.getText().toString());
+            }
+        });
+
     }
+
+    //Updates ListView with parameters given
     public void updateMovieList(Theatre theatreSelected, String date){
-        movieArray = tc.updateMovies(theatreSelected, date);
+        String start = searchStartTime.getText().toString();
+        String end = searchEndTime.getText().toString();
+        ArrayList<String> movieArray = tc.updateMovies(theatreSelected, date, start, end);
         movieArrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, movieArray);
         movieArrayAdapter.notifyDataSetChanged();
         listView.setAdapter(movieArrayAdapter);

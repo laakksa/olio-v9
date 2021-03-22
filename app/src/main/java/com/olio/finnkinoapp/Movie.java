@@ -1,6 +1,7 @@
 package com.olio.finnkinoapp;
 
 public class Movie {
+
     String title, eventID, startTime, endTime, prodYear, lengthMin;
 
     public void setTitle(String title) {
@@ -29,18 +30,6 @@ public class Movie {
 
     public String getEndTime() {
         return endTime;
-    }
-
-    public String getEventID() {
-        return eventID;
-    }
-
-    public String getLengthMin() {
-        return lengthMin;
-    }
-
-    public String getProdYear() {
-        return prodYear;
     }
 
     public String getStartTime() {
