@@ -3,6 +3,7 @@ package com.olio.finnkinoapp;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.view.View;
@@ -13,6 +14,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.TimePicker;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -25,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     EditText datePicker, searchStartTime, searchEndTime;
     String[] theatreNameList;
     DatePickerDialog datePickerDialog;
+    TimePickerDialog startTimePicker, endTimePicker;
     ListView listView;
     ArrayAdapter<String> movieArrayAdapter;
     Button searchButton;
@@ -82,6 +85,37 @@ public class MainActivity extends AppCompatActivity {
                 datePickerDialog.show();
             }
         });
+
+        //Open TimePickerDialog when clicking on time editTexts
+        searchStartTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int mHour = 0, mMin = 0;
+                startTimePicker = new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                        searchStartTime.setText(String.format("%02d:%02d", hourOfDay, minute));
+                    }
+                }, mHour, mMin, true);
+                startTimePicker.show();
+            }
+        });
+
+        searchEndTime.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int mHour = 0, mMin = 0;
+                startTimePicker = new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+                        searchEndTime.setText(String.format("%02d:%02d", hourOfDay, minute));
+                    }
+                }, mHour, mMin, true);
+                startTimePicker.show();
+            }
+        });
+
+        //Update movies on button click
         searchButton = (Button) findViewById(R.id.searchButton);
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
