@@ -19,6 +19,7 @@ import java.util.Date;
 public class TheatreCollection {
     private static TheatreCollection tc_instance = null;
     ArrayList<Theatre> theatreList;
+
     //Initializes theatre list
     private TheatreCollection() {
         try {
@@ -33,6 +34,7 @@ public class TheatreCollection {
             Log.e("IOException", "Faulty input");
         }
     }
+
     //Singleton pattern
     public static TheatreCollection getInstance() {
         if (tc_instance == null) {
@@ -53,6 +55,7 @@ public class TheatreCollection {
 
 
     }
+
     //Parses Xml file containing areas
     private ArrayList<Theatre> parseAreasXML(XmlPullParser parser) throws IOException, XmlPullParserException {
         theatreList = new ArrayList<>();
@@ -101,9 +104,9 @@ public class TheatreCollection {
                             currentMovie.setStartTime(parser.nextText());
                         } else if (elementName.equals("dttmShowEnd")) {
                             currentMovie.setEndTime(parser.nextText());
-                        }else if (elementName.equals("Title")) {
+                        } else if (elementName.equals("Title")) {
                             currentMovie.setTitle(parser.nextText());
-                        }else if (elementName.equals("ProductionYear")) {
+                        } else if (elementName.equals("ProductionYear")) {
                             currentMovie.setProdYear(parser.nextText());
                         } else if (elementName.equals("LengthInMinutes")) {
                             currentMovie.setLengthMin(parser.nextText());
@@ -118,9 +121,9 @@ public class TheatreCollection {
     }
 
     //Creates URL for schedule from parameters
-    public URL scheduleURLBuilder(int id, String d) throws MalformedURLException{
+    public URL scheduleURLBuilder(int id, String d) throws MalformedURLException {
         String date = "";
-        if (d.isEmpty()){
+        if (d.isEmpty()) {
             date = new SimpleDateFormat("dd.MM.yyyy").format(new Date());
         } else {
             date = d;
@@ -132,9 +135,9 @@ public class TheatreCollection {
 
 
     //Create String array from theatre names
-    public String[] getTheatreList(){
-        String [] theatreNameList = new String[theatreList.size()];
-        for (int i = 0;i < theatreList.size(); i++){
+    public String[] getTheatreList() {
+        String[] theatreNameList = new String[theatreList.size()];
+        for (int i = 0; i < theatreList.size(); i++) {
             theatreNameList[i] = theatreList.get(i).getLocation();
         }
         return theatreNameList;
@@ -142,40 +145,79 @@ public class TheatreCollection {
 
 
     //Updates movieList to be displayed in ListView, shows movie title, start time and end time
-    public ArrayList<String> updateMovies(Theatre theatreSelected, String date, String start, String end) {
+    public ArrayList<String> updateMovies(Theatre theatreSelected, String date, String start, String end, String search) {
+        ArrayList<String> movieArray = new ArrayList<>();
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+        Date startTime, endTime, movieStart;
         try {
-            System.out.println(scheduleURLBuilder(theatreSelected.getId(), date).toString());
-            ArrayList<Movie> moviesList = parseScheduleXML(readXML(scheduleURLBuilder(theatreSelected.getId(), date)));
-            ArrayList<String> movieArray = new ArrayList<>();
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
-            Date startTime, endTime, movieStart;
-            if (start.isEmpty()){
+            if (start.isEmpty()) {
                 startTime = sdf.parse("00:01");
             } else {
                 startTime = sdf.parse(start);
             }
-            if (end.isEmpty()){
+            if (end.isEmpty()) {
                 endTime = sdf.parse("23:59");
-            }else{
+            } else {
                 endTime = sdf.parse(end);
             }
-            for (int i = 0; i < moviesList.size(); i++) {
-                movieStart = sdf.parse(moviesList.get(i).getStartTime());
-                //Only shows movies whose start time is between selected parameters
-                if (!movieStart.before(startTime) && !movieStart.after(endTime)) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(moviesList.get(i).getTitle());
-                    sb.append("\t\t");
-                    sb.append(String.format("%s-%s", moviesList.get(i).getStartTime(), moviesList.get(i).getEndTime()));
-                    movieArray.add(sb.toString());
+            if (search.isEmpty()) {
+                ArrayList<Movie> moviesList = parseScheduleXML(readXML(scheduleURLBuilder(theatreSelected.getId(), date)));
+                for (int i = 0; i < moviesList.size(); i++) {
+                    movieStart = sdf.parse(moviesList.get(i).getStartTime());
+                    //Only shows movies whose start time is between selected parameters
+                    if (!movieStart.before(startTime) && !movieStart.after(endTime)) {
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(moviesList.get(i).getTitle());
+                        sb.append("\t\t");
+                        sb.append(String.format("%s-%s", moviesList.get(i).getStartTime(), moviesList.get(i).getEndTime()));
+                        movieArray.add(sb.toString());
+                    }
+                }
+                return movieArray;
+            } else {
+                //If no theatre selected, search from all theatres
+                if (theatreSelected.getId() == 1029) {
+                    for (Theatre t : theatreList) {
+                        //All individual theatres have a : in their name, so use it as a filter
+                        if (t.getLocation().contains(":")) {
+                            ArrayList<Movie> moviesList = parseScheduleXML(readXML(scheduleURLBuilder(t.getId(), date)));
+                            for (int i = 0; i < moviesList.size(); i++) {
+                                movieStart = sdf.parse(moviesList.get(i).getStartTime());
+                                //Only shows movies whose start time is between selected parameters
+                                if (!movieStart.before(startTime) && !movieStart.after(endTime) && moviesList.get(i).getTitle().toLowerCase().contains(search.toLowerCase())) {
+                                    StringBuilder sb = new StringBuilder();
+                                    sb.append(moviesList.get(i).getTitle());
+                                    sb.append("\t\t");
+                                    sb.append(String.format("%s-%s", moviesList.get(i).getStartTime(), moviesList.get(i).getEndTime()));
+                                    sb.append("\n" + t.getLocation());
+                                    movieArray.add(sb.toString());
+                                }
+                            }
+                        }
+                    }
+                    return movieArray;
+                } else {
+                    //If theatre selected and search is not empty, search from selected theatre
+                    ArrayList<Movie> moviesList = parseScheduleXML(readXML(scheduleURLBuilder(theatreSelected.getId(), date)));
+                    for (int i = 0; i < moviesList.size(); i++) {
+                        movieStart = sdf.parse(moviesList.get(i).getStartTime());
+                        //Only shows movies whose start time is between selected parameters
+                        if (!movieStart.before(startTime) && !movieStart.after(endTime) && moviesList.get(i).getTitle().toLowerCase().contains(search.toLowerCase())) {
+                            StringBuilder sb = new StringBuilder();
+                            sb.append(moviesList.get(i).getTitle());
+                            sb.append("\t\t");
+                            sb.append(String.format("%s-%s", moviesList.get(i).getStartTime(), moviesList.get(i).getEndTime()));
+                            movieArray.add(sb.toString());
+                        }
+                    }
+                    return movieArray;
                 }
             }
-            return movieArray;
         } catch (XmlPullParserException e) {
             Log.e("XmlPullParserException", "Faulty XmlPullParser");
         } catch (IOException e) {
             Log.e("IOException", "Faulty input");
-        } catch (ParseException e){
+        } catch (ParseException e) {
 
         }
         return null;

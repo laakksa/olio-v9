@@ -15,6 +15,9 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TimePicker;
+
+import com.google.android.material.textfield.TextInputLayout;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -24,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     TheatreCollection tc;
     Spinner theatreSpinner;
     Theatre theatreSelected;
-    EditText datePicker, searchStartTime, searchEndTime;
+    EditText datePicker, searchStartTime, searchEndTime, searchBox;
     String[] theatreNameList;
     DatePickerDialog datePickerDialog;
     TimePickerDialog startTimePicker, endTimePicker;
@@ -44,9 +47,11 @@ public class MainActivity extends AppCompatActivity {
         listView = (ListView) findViewById(R.id.listView);
         searchStartTime = (EditText) findViewById(R.id.searchStartTime);
         searchEndTime = (EditText) findViewById(R.id.searchEndTime);
+        searchBox = (EditText) findViewById(R.id.search);
 
         //Initialize spinner for theatres
         theatreNameList = tc.getTheatreList();
+        theatreSelected = tc.theatreList.get(0);
         ArrayAdapter<String> theatreArrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, theatreNameList);
         theatreArrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         theatreSpinner.setAdapter(theatreArrayAdapter);
@@ -64,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
                 updateMovieList(theatreSelected, "");
             }
         });
-
 
         //Initialize datePickerDialog when clicking on editText
         datePicker = (EditText) findViewById(R.id.datePicker);
@@ -105,13 +109,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 int mHour = 0, mMin = 0;
-                startTimePicker = new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
+                endTimePicker = new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
                     @Override
                     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
                         searchEndTime.setText(String.format("%02d:%02d", hourOfDay, minute));
                     }
                 }, mHour, mMin, true);
-                startTimePicker.show();
+                endTimePicker.show();
             }
         });
 
@@ -130,7 +134,8 @@ public class MainActivity extends AppCompatActivity {
     public void updateMovieList(Theatre theatreSelected, String date){
         String start = searchStartTime.getText().toString();
         String end = searchEndTime.getText().toString();
-        ArrayList<String> movieArray = tc.updateMovies(theatreSelected, date, start, end);
+        String search = searchBox.getText().toString();
+        ArrayList<String> movieArray = tc.updateMovies(theatreSelected, date, start, end, search);
         movieArrayAdapter = new ArrayAdapter<String>(MainActivity.this, android.R.layout.simple_list_item_1, movieArray);
         movieArrayAdapter.notifyDataSetChanged();
         listView.setAdapter(movieArrayAdapter);
